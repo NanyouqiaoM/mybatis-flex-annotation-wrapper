@@ -12,7 +12,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Documented
 @Target({FIELD})
 @Retention(RUNTIME)
-public @interface Wrapper {
+public @interface Where {
     /**
      * 列名 默认字段名驼峰转下划线
      */
