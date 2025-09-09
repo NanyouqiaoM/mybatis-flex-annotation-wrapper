@@ -1,7 +1,4 @@
-package top.xiaowoa.mybatisflex.extension.annotations;
-
-import com.mybatisflex.core.constant.SqlConsts;
-import top.xiaowoa.mybatisflex.extension.annotations.query.SelectTable;
+package top.xiaowoa.mybatisflex.extension.annotations.query;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -10,13 +7,10 @@ import java.lang.annotation.Target;
 
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-
 @Documented
 @Target(ElementType.TYPE)
 @Retention(RUNTIME)
-public @interface Select {
-    /**
-     * 查询的字段
-     */
-    SelectTable[] tables();
+public @interface SelectColumn {
+    String column();
+    String alias();
 }

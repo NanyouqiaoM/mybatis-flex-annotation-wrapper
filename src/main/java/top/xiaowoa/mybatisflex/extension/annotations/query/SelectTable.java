@@ -1,7 +1,6 @@
-package top.xiaowoa.mybatisflex.extension.annotations;
+package top.xiaowoa.mybatisflex.extension.annotations.query;
 
 import com.mybatisflex.core.constant.SqlConsts;
-import top.xiaowoa.mybatisflex.extension.annotations.query.SelectTable;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -10,13 +9,20 @@ import java.lang.annotation.Target;
 
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-
 @Documented
 @Target(ElementType.TYPE)
 @Retention(RUNTIME)
-public @interface Select {
+public @interface SelectTable {
     /**
-     * 查询的字段
+     * 表名
      */
-    SelectTable[] tables();
+    String name();
+    /**
+     * 别名
+     */
+    String alias();
+    /**
+     * 查询字段
+     */
+    SelectColumn[] columns() default @SelectColumn(column = SqlConsts.ASTERISK, alias = "");
 }
