@@ -17,12 +17,14 @@ public @interface SelectTable {
      * 表名
      */
     String name();
+
     /**
      * 别名
      */
     String alias();
+
     /**
      * 查询字段
      */
-    SelectColumn[] columns() default @SelectColumn(column = SqlConsts.ASTERISK, alias = "");
+    SelectColumn[] columns() default @SelectColumn(name = SqlConsts.ASTERISK, alias = "");
 }

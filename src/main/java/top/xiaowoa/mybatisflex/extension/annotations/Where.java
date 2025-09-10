@@ -1,5 +1,6 @@
 package top.xiaowoa.mybatisflex.extension.annotations;
 
+import com.mybatisflex.core.util.LambdaGetter;
 import top.xiaowoa.mybatisflex.extension.enums.SqlOperator;
 
 import java.lang.annotation.Documented;
@@ -16,7 +17,7 @@ public @interface Where {
     /**
      * 列名 默认字段名驼峰转下划线
      */
-    String column() default "";
+    String column();
 
     /**
      * 操作符
