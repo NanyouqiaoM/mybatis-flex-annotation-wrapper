@@ -5,12 +5,17 @@ import com.mybatisflex.core.query.QueryColumn;
 import com.mybatisflex.core.query.QueryCondition;
 import com.mybatisflex.core.query.QueryTable;
 import com.mybatisflex.core.query.QueryWrapper;
+import com.mybatisflex.core.table.BaseReflectorFactory;
 import com.mybatisflex.core.table.EntityMetaObject;
+import com.mybatisflex.core.util.Reflectors;
 import com.mybatisflex.core.util.StringUtil;
 import org.apache.ibatis.reflection.MetaObject;
+import org.apache.ibatis.reflection.Reflector;
+import org.apache.ibatis.reflection.ReflectorFactory;
 import top.xiaowoa.mybatisflex.extension.annotations.Select;
 import top.xiaowoa.mybatisflex.extension.annotations.Where;
 import top.xiaowoa.mybatisflex.extension.annotations.query.SelectTable;
+import top.xiaowoa.mybatisflex.extension.enums.SqlOperator;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
@@ -34,30 +39,36 @@ public class QueryWrapperBuilder {
     private static void handleWhere(QueryWrapper query, Object object) {
         Class<?> clazz = object.getClass();
         Field[] fields = clazz.getDeclaredFields();
+        MetaObject metaObject = EntityMetaObject.forObject(object, reflectorFactory);
         for (Field field : fields) {
             Where where = field.getAnnotation(Where.class);
             if (where == null) {
                 continue;
             }
             String column = where.column();
-            query.eq()
+            if (!StringUtil.hasText(column)) {
+                column = StringUtil.camelToUnderline(field.getName());
+            }
+            Object value = handleValue(where.operator(), metaObject.getValue(field.getName()));
+            QueryColumn queryColumn = new QueryColumn(column);
+            QueryCondition condition = new QueryCondition();
+            condition.setColumn(queryColumn);
+            condition.setLogic(where.operator().value);
+            condition.setValue(value);
+            query.and(condition);
         }
-        Arrays.stream(clazz.getDeclaredFields()).forEach(field -> {
-            Where where = field.getAnnotation(Where.class);
-            if (where == null) {
+    }
 
+    private static Object handleValue(SqlOperator operator, Object value) {
+        switch (operator) {
+            case LIKE, NOT_LIKE -> value = "%" + value + "%";
+            case LIKE_LEFT, NOT_LIKE_LEFT -> value = value + "%";
+            case LIKE_RIGHT, NOT_LIKE_RIGHT -> value = "%" + value;
+            case IS_NULL, IS_NOT_NULL -> value = null;
+            case null, default -> {
             }
-            if (where != null) {
-                String column = where.column();
-                if (StringUtil.hasText(column)) {
-                    column = field.getName();
-                }
-                MetaObject metaObject = EntityMetaObject.forObject(object, reflectorFactory);
-
-                query.and();
-                query.eq(column, field.getName());
-            }
-        });
+        }
+        return value;
     }
 
     private static void handleSelect(QueryWrapper query, Class<?> clazz) {
@@ -92,4 +103,12 @@ public class QueryWrapperBuilder {
         String tableName = "";
         String columns = StringUtil.hasText(tableName) ? tableName + REFERENCE + SqlConsts.ASTERISK : SqlConsts.ASTERISK;
     }
+
+    private static final ReflectorFactory reflectorFactory = new BaseReflectorFactory() {
+        @Override
+        public Reflector findForClass(Class<?> type) {
+
+            return Reflectors.of(type);
+        }
+    };
 }

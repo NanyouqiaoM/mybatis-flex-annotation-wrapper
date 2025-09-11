@@ -17,7 +17,7 @@ public @interface Where {
     /**
      * 列名 默认字段名驼峰转下划线
      */
-    String column();
+    String column() default "";
 
     /**
      * 操作符
