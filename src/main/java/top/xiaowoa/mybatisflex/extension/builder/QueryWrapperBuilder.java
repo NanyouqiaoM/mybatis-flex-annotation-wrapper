@@ -1,10 +1,7 @@
 package top.xiaowoa.mybatisflex.extension.builder;
 
 import com.mybatisflex.core.constant.SqlConsts;
-import com.mybatisflex.core.query.QueryColumn;
-import com.mybatisflex.core.query.QueryCondition;
-import com.mybatisflex.core.query.QueryTable;
-import com.mybatisflex.core.query.QueryWrapper;
+import com.mybatisflex.core.query.*;
 import com.mybatisflex.core.table.BaseReflectorFactory;
 import com.mybatisflex.core.table.EntityMetaObject;
 import com.mybatisflex.core.util.Reflectors;
@@ -20,6 +17,7 @@ import top.xiaowoa.mybatisflex.extension.enums.SqlOperator;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import static com.mybatisflex.core.constant.SqlConsts.REFERENCE;
@@ -49,7 +47,13 @@ public class QueryWrapperBuilder {
             if (!StringUtil.hasText(column)) {
                 column = StringUtil.camelToUnderline(field.getName());
             }
-            Object value = handleValue(where.operator(), metaObject.getValue(field.getName()));
+            Object value = metaObject.getValue(field.getName());
+            boolean ignore = QueryColumnBehavior.getIgnoreFunction().test(value);
+            if (ignore) {
+                continue;
+            }
+            SqlOperator operator = where.operator();
+            value = handleValue(operator, value);
             QueryColumn queryColumn = new QueryColumn(column);
             QueryCondition condition = new QueryCondition();
             condition.setColumn(queryColumn);
@@ -60,11 +64,34 @@ public class QueryWrapperBuilder {
     }
 
     private static Object handleValue(SqlOperator operator, Object value) {
+        if (value == null) {
+            return value;
+        }
         switch (operator) {
             case LIKE, NOT_LIKE -> value = "%" + value + "%";
             case LIKE_LEFT, NOT_LIKE_LEFT -> value = value + "%";
             case LIKE_RIGHT, NOT_LIKE_RIGHT -> value = "%" + value;
             case IS_NULL, IS_NOT_NULL -> value = null;
+            case IN, NOT_IN -> {
+                if (value instanceof List<?>) {
+                    value = ((List<?>) value).toArray();
+                }
+            }
+            case BETWEEN, NOT_BETWEEN -> {
+                if (value instanceof Iterable<?>) {
+                    Iterator<?> iter = ((Iterable<?>) value).iterator();
+                    if (!iter.hasNext()) {  // 没有元素，直接返回原条件
+                        return null;
+                    }
+                    Object firstValue = iter.next();
+                    if (iter.hasNext()) {  // 如果有后续元素，则直接返回原条件
+                        Object lastValue = iter.next();
+                        return new Object[]{firstValue, lastValue};
+                    }
+                    operator = SqlOperator.GE;
+                    return firstValue;
+                }
+            }
             case null, default -> {
             }
         }
