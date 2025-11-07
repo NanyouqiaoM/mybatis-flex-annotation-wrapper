@@ -12,7 +12,7 @@
         <java.version>21</java.version>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
-        <mybatis-flex.version>1.11.1</mybatis-flex.version>
+        <mybatis-flex.version>1.11.3</mybatis-flex.version>
         <lombok.version>1.18.38</lombok.version>
     </properties>
     <dependencies>
