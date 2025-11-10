@@ -106,7 +106,8 @@ public class QueryWrapperBuilder {
         QueryTable[] queryTables = new QueryTable[selectTableList.size()];
         for (int i = 0; i < selectTableList.size(); i++) {
             SelectTable selectTable = selectTableList.get(i);
-            QueryTable queryTable = new QueryTable(selectTable.name(), selectTable.alias());
+            QueryTable queryTable = new QueryTable(selectTable.name());
+            queryTable.setAlias(selectTable.alias());
             QueryColumn[] queryColumns = Arrays.stream(selectTable.columns()).map(selectColumn -> new QueryColumn(queryTable, selectColumn.name(), selectColumn.alias())).toArray(QueryColumn[]::new);
             query.select(queryColumns);
             queryTables[i] = queryTable;
